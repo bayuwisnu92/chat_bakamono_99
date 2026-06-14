@@ -1,204 +1,178 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ChatApp · Modern UI</title>
-  <!-- Bootstrap CSS -->
+  <title>ChatApp · Premium Real-time UI</title>
+  <meta name="description" content="Aplikasi chat premium modern dengan Supabase Realtime">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ChatApp">
+  <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome -->
+  <!-- Font Awesome Pro / Solid Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <!-- Custom CSS -->
   <link rel="stylesheet" href="./css/style.css">
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
 </head>
-<body class="bg-light">
+<body>
 
-  <!-- Navbar -->
-  <!-- 移除原 navbar，添加浮动按钮结构 -->
-<div class="fab-container">
-  <!-- 主 FAB 按钮 -->
-  <button class="fab-main btn btn-primary rounded-circle shadow-lg" id="fabToggle">
-    <!-- <i class="fas fa-plus"></i> -->
-    <i class="fas fa-comment-dots ms-1"></i>
-    <span class="fab-text"></span>
-  </button>
-  
-  <!-- 展开的菜单选项 -->
-  <div class="fab-menu" id="fabMenu">
-    <button class="fab-item d-md-none border-0" onclick="showContacts()" title="Kembali">
-      <i class="fas fa-arrow-left"></i>
-    </button>
-  
-    <a href="contact.html" class="fab-item" title="Beranda">
-      <i class="fas fa-home"></i>
-    </a>
-  
-    <a href="#" class="fab-item" data-bs-toggle="modal" data-bs-target="#ubahphoto" title="Ubah Foto">
-      <i class="fas fa-camera"></i>
-    </a>
-  
-    <a href="#" class="fab-item" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Buat Grup">
-      <i class="fas fa-user-plus"></i>
-    </a>
-  
-    <a href="#" class="fab-item" id="logout" title="Keluar">
-      <i class="fas fa-sign-out-alt"></i>
-    </a>
-  </div>
-</div>
-
-  <!-- Main Content -->
-  <div class="container mt-3 mt-md-4">
-    <div class="d-flex flex-column-reverse flex-md-row gap-3">
-      
-      <!-- SIDEBAR KONTAK -->
-      <div class="w-100 w-md-40" id="kontak">
-        <div class="card border-0 shadow-sm rounded-4">
-          
-          <div class="card-header bg-white border-0 pt-3 pb-2">
-            
-            <!-- HEADER FLEX -->
-            <div class="d-flex justify-content-between align-items-center">
-              <h5 class="fw-semibold mb-0" id="home">
-                <i class="fas fa-address-book me-2 text-primary"></i>Kontak
-              </h5>
-      
-              <div class="dropdown">
-                <button class="btn btn-light rounded-circle" data-bs-toggle="dropdown">
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-      
-                <ul class="dropdown-menu dropdown-menu-end" id="menucontact">
-                  <li><hr class="dropdown-divider"></li>
-                  <li>
-                    <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#ubahphoto">
-                      <i class="fas fa-camera"></i> ganti photo profile
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-      
-            <!-- SEARCH -->
-            <div class="search-bar mt-3">
-              <div class="input-group">
-                <span class="input-group-text bg-white border-end-0 rounded-start-pill">
-                  <i class="fas fa-search text-muted"></i>
-                </span>
-                <input type="text" class="form-control border-start-0 rounded-end-pill ps-0" placeholder="Cari kontak..." id="pencarian">
-              </div>
-            </div>
-      
+  <div class="app-container" id="appContainer">
+    
+    <!-- SIDEBAR -->
+    <div class="sidebar-panel" id="kontak">
+      <!-- HEADER SIDEBAR -->
+      <div class="sidebar-header">
+        <button class="user-profile-btn" data-bs-toggle="modal" data-bs-target="#ubahphoto" title="Ubah Foto Profil">
+          <img id="my-profile-avatar" src="https://ui-avatars.com/api/?name=Guest&background=4f46e5&color=fff&bold=true" class="user-avatar" alt="Avatar">
+          <div class="user-info-text">
+            <span class="name" id="my-username">Memuat...</span>
+            <span class="status"><i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i>online</span>
           </div>
-      
-          <div class="card-body p-0" id="contacts-list" style="max-height: 75vh; overflow-y: auto;">
-            <div class="text-center py-4 text-muted">Memuat kontak...</div>
-          </div>
-      
+        </button>
+        <div class="sidebar-actions">
+          <button class="action-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Buat Grup Baru">
+            <i class="fas fa-plus-circle fa-lg"></i>
+          </button>
+          <button class="action-btn text-danger" id="logout" title="Keluar">
+            <i class="fas fa-sign-out-alt fa-lg"></i>
+          </button>
         </div>
       </div>
-
-      <!-- AREA CHAT -->
-      <div class="w-100 w-md-60">
-        
-        
-        <div class="chat-container card border-0 shadow-sm rounded-4 overflow-hidden">
-          
-          <!-- HEADER CHAT (diperbaiki) -->
-          <div class="chat-header bg-white p-3 border-bottom d-flex align-items-center">
-            <!-- <button class="btn btn-light rounded-circle me-2 d-md-none" onclick="showContacts()">
-              <i class="fas fa-arrow-left"></i>
-            </button> -->
-            <div class="d-flex align-items-center flex-grow-1" id="chat-name">
-              <!-- Diisi oleh JavaScript: foto profil, nama, status -->
-              <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-              
-              <span>Pilih kontak untuk mulai chat</span>
-            </div>
-            <span id="typing-indicator"
-          class="text-muted px-3"
-          style="display: none;">
-          </span>
-            <div class="dropdown">
-              <button class="btn btn-light rounded-circle" data-bs-toggle="dropdown">
-                <i class="fas fa-ellipsis-v"></i>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end" id="menu">
-                
-                <li><hr class="dropdown-divider"></li>
-                
-              </ul>
-            </div>
-            
-          </div>
-
-          <!-- ADD MEMBER SECTION (disembunyikan default) -->
-          <div id="add-member-section" class="p-3 bg-light border-bottom" style="display: none;">
-            <h6 class="fw-semibold">Tambah Member ke Grup</h6>
-            <div class="input-group mb-2">
-              <input type="text" class="form-control" placeholder="Cari username..." id="search-username">
-              <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
-            </div>
-            <div id="search-results" class="mb-2"></div>
-            <input type="hidden" id="target-user-id" value="">
-            <div class="d-flex gap-2">
-              <button class="btn btn-primary btn-sm" id="btn-submit-member">Tambah</button>
-              <button class="btn btn-light btn-sm" onclick="this.parentElement.parentElement.style.display='none'">Batal</button>
-            </div>
-          </div>
-
-          <!-- AREA PESAN -->
-          
-          <div id="messages" class="p-3 bg-light" style="min-height: 55vh; max-height: 57vh; overflow-y: auto;">
-            
-            <!-- Pesan akan dirender di sini -->
-            <div class="text-center text-muted mt-5">
-              <i class="fas fa-comments fa-3x mb-3 opacity-50"></i>
-              <p>Belum ada pesan. Mulai percakapan sekarang.</p>
-            </div>
-          </div>
-          
-
-          <!-- FORM INPUT PESAN -->
-          <form id="chat-form" class="chat-form bg-white p-3 border-top">
-            <div class="d-flex gap-2 align-items-center">
-              <input type="text" id="message-input" class="form-control rounded-pill bg-light border-0 px-3" placeholder="Ketik pesan..." />
-              
-              <input type="file" id="file-input" accept="image/*" hidden>
-              
-              <label for="file-input" class="btn btn-light rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                <i class="fas fa-paperclip"></i>
-              </label>
-              
-              <button type="submit" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                <i class="fas fa-paper-plane"></i>
-              </button>
-            </div>
-          </form>
+      
+      <!-- SEARCH BAR -->
+      <div class="search-container">
+        <div class="search-input-group">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" class="search-field" placeholder="Cari kontak atau grup..." id="pencarian">
+        </div>
+      </div>
+      
+      <!-- CONTACT LIST -->
+      <div class="contacts-list-container" id="contacts-list">
+        <div class="text-center py-5 text-muted">
+          <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+          <div>Memuat obrolan...</div>
         </div>
       </div>
     </div>
+
+    <!-- AREA PANEL CHAT -->
+    <div class="chat-panel chat-container">
+      
+      <!-- Welcome Screen (Default jika tidak ada obrolan) -->
+      <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-logo">
+          <i class="fas fa-comments-text"></i>
+        </div>
+        <h2 class="welcome-title">ChatApp Realtime</h2>
+        <p class="welcome-subtitle">Pilih kontak atau grup dari sidebar untuk memulai percakapan instan. Semua pesan aman dan terkirim secara real-time.</p>
+      </div>
+
+      <!-- Detail Chat (Aktif saat obrolan dipilih) -->
+      <div class="d-flex flex-column h-100 w-100" id="active-chat-area" style="display: none !important;">
+        <!-- HEADER CHAT -->
+        <div class="chat-panel-header">
+          <div class="chat-header-info">
+            <button class="chat-back-btn" id="chat-back-btn" title="Kembali">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <img id="chat-avatar" src="https://ui-avatars.com/api/?name=User&background=4f46e5&color=fff" class="chat-header-avatar" alt="Avatar">
+            <div class="chat-header-text">
+              <div class="chat-partner-name" id="chat-partner-name">Nama Partner</div>
+              <div class="chat-partner-status" id="chat-partner-status">offline</div>
+            </div>
+          </div>
+          
+          <div class="chat-header-actions">
+            <!-- Dropdown Menu Tindakan -->
+            <div class="dropdown">
+              <button class="action-btn" data-bs-toggle="dropdown" id="chatActionsDropdown">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2" aria-labelledby="chatActionsDropdown" id="menu">
+                <!-- Diisi dinamis oleh JS -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADD MEMBER SECTION (Grup) -->
+        <div id="add-member-section" class="p-3 bg-white border-bottom shadow-sm" style="display: none;">
+          <h6 class="fw-semibold mb-2 text-primary"><i class="fas fa-user-plus me-1"></i>Tambah Anggota Grup</h6>
+          <div class="input-group input-group-sm mb-2">
+            <input type="text" class="form-control rounded-pill-start border-end-0" placeholder="Cari username..." id="search-username">
+            <span class="input-group-text bg-white border-start-0 rounded-pill-end"><i class="fas fa-search text-muted"></i></span>
+          </div>
+          <div id="search-results" class="list-group mb-2 max-height-150 overflow-y-auto"></div>
+          <input type="hidden" id="target-user-id" value="">
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-sm rounded-pill px-3" id="btn-submit-member" disabled>Tambahkan</button>
+            <button class="btn btn-light btn-sm rounded-pill px-3" onclick="document.getElementById('add-member-section').style.display='none'">Batal</button>
+          </div>
+        </div>
+
+        <!-- AREA PESAN -->
+        <div id="messages" class="chat-messages-area">
+          <!-- Pesan akan dirender di sini -->
+        </div>
+
+        <!-- IMAGE PREVIEW -->
+        <div id="image-preview-container" class="p-2 bg-light border-top" style="display: none; position: relative;">
+          <div style="position: relative; display: inline-block;">
+            <img id="image-preview" src="" alt="Preview" class="img-thumbnail" style="max-height: 120px;">
+            <button type="button" class="btn-close position-absolute top-0 start-100 translate-middle" id="remove-image-btn" aria-label="Close" style="background-color: white; border-radius: 50%; padding: 0.3rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></button>
+          </div>
+        </div>
+
+        <!-- FORM INPUT PESAN -->
+        <div class="chat-input-panel">
+          <form id="chat-form" class="chat-input-form">
+            <input type="file" id="file-input" accept="image/*" hidden>
+            
+            <label for="file-input" class="input-icon-btn" title="Kirim Gambar" style="cursor: pointer;">
+              <i class="fas fa-image fa-lg"></i>
+            </label>
+            
+            <div class="chat-input-box-wrapper">
+              <input type="text" id="message-input" class="chat-input-box" placeholder="Ketik pesan..." autocomplete="off">
+            </div>
+            
+            <button type="submit" class="input-icon-btn input-send-btn" title="Kirim">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
   </div>
+
+  <!-- AUDIO NOTIFIKASI -->
+  <audio id="notif-audio" src="./notifikasi/pesan.mp3" preload="auto"></audio>
 
   <!-- MODAL: BUAT GRUP -->
   <div class="modal fade" id="exampleModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-semibold"><i class="fas fa-users me-2 text-primary"></i>Buat Grup Baru</h5>
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-primary"><i class="fas fa-users me-2"></i>Buat Grup Baru</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body pt-3">
           <form id="formGroup">
             <div class="mb-3">
-              <label for="name" class="form-label fw-semibold">Nama Grup</label>
-              <input type="text" class="form-control rounded-pill" id="name" name="name" placeholder="Contoh: Tim Proyek">
+              <label for="name" class="form-label fw-semibold text-muted">Nama Grup</label>
+              <input type="text" class="form-control form-input-pill" id="name" name="name" placeholder="Masukkan nama grup..." required>
             </div>
-            <div class="d-grid">
-              <button type="submit" class="btn btn-primary rounded-pill py-2">Buat Grup</button>
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary btn-pill py-2">Buat Grup</button>
             </div>
           </form>
         </div>
@@ -209,19 +183,19 @@
   <!-- MODAL: UBAH FOTO PROFIL -->
   <div class="modal fade" id="ubahphoto" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-semibold"><i class="fas fa-camera me-2 text-primary"></i>Foto Profil</h5>
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-primary"><i class="fas fa-camera me-2"></i>Ubah Foto Profil</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body pt-3">
           <form id="formPhoto">
             <div class="mb-3">
-              <label for="image" class="form-label fw-semibold">Pilih Foto</label>
-              <input type="file" class="form-control" id="image" name="profile_picture" accept="image/*">
+              <label for="image" class="form-label fw-semibold text-muted">Pilih File Foto</label>
+              <input type="file" class="form-control form-input-pill" id="image" name="profile_picture" accept="image/*" required>
             </div>
-            <div class="d-grid">
-              <button type="submit" class="btn btn-primary rounded-pill py-2">Unggah</button>
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary btn-pill py-2">Unggah Foto Baru</button>
             </div>
           </form>
         </div>
@@ -232,44 +206,49 @@
   <!-- MODAL: FOTO GRUP -->
   <div class="modal fade" id="photogrup" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-semibold"><i class="fas fa-image me-2 text-primary"></i>Foto Grup</h5>
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-primary"><i class="fas fa-image me-2"></i>Ubah Foto Grup</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
-          <form id="formPhotogrup" enctype="multipart/form-data">
+        <div class="modal-body pt-3">
+          <form id="formPhotogrup">
             <div class="mb-3">
-              <label for="imageGrup" class="form-label fw-semibold">Pilih Foto</label>
-              <input type="file" class="form-control" id="imageGrup" name="profile_picture" accept="image/*">
+              <label for="imageGrup" class="form-label fw-semibold text-muted">Pilih File Foto Grup</label>
+              <input type="file" class="form-control form-input-pill" id="imageGrup" name="profile_picture" accept="image/*" required>
             </div>
-            <div class="d-grid">
-              <button type="submit" class="btn btn-primary rounded-pill py-2">Perbarui</button>
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary btn-pill py-2">Perbarui Foto</button>
             </div>
           </form>
         </div>
       </div>
     </div>
   </div>
-  <!-- modal untuk anggota grup -->
+
+  <!-- MODAL ANGGOTA GRUP -->
   <div class="modal fade" id="anggotagrup" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-semibold"><i class="fas fa-image me-2 text-primary"></i>anggota grup <span id="namagrup" style="color:red; display:inline-block"></span></h5>
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-primary"><i class="fas fa-users-class me-2"></i>Anggota Grup <span id="namagrup" class="text-danger"></span></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div id="allmembergrup"></div>
-        
+          <div id="allmembergrup" class="list-group list-group-flush max-height-300 overflow-y-auto">
+            <!-- Diisi oleh JS -->
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://killing-heath-cope-roles.trycloudflare.com/socket.io/socket.io.js"></script>
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- JavaScript Modules -->
+  <script type="module" src="./js/supabaseClient.js"></script>
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>

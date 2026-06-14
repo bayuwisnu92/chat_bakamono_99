@@ -1,10 +1,10 @@
-import { renderContent, showAlert, resizeImage } from "./utils.js";
+import { renderContent, showAlert } from "./utils.js";
 import { setActiveConversation } from "./state.js";
 import { supaclient } from "./supabaseClient.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-let gambarprofile = urlParams.get('image') || sessionStorage.getItem('active_chat_image');
-let usernamegrup = urlParams.get('username') || sessionStorage.getItem('active_chat_username');
+const gambarprofile = urlParams.get('image');
+const usernamegrup = urlParams.get('username');
 
 export async function loadMessages(conversationId, token, currentUserId) {
   setActiveConversation(conversationId);
@@ -23,21 +23,21 @@ export async function loadMessages(conversationId, token, currentUserId) {
     isipesan.innerHTML = '';
     
     // Set Header
-    const partnerNameEl = document.getElementById('chat-partner-name');
-    if (partnerNameEl) partnerNameEl.textContent = usernamegrup || 'Lawan Chat';
-    
-    const avatarEl = document.getElementById('chat-avatar');
-    if (avatarEl) {
-      avatarEl.src = gambarprofile && gambarprofile !== 'null' ? gambarprofile : `https://ui-avatars.com/api/?name=${encodeURIComponent(usernamegrup || 'User')}&background=random`;
-      avatarEl.onerror = function() {
-        this.onerror = null;
-        this.src = `https://ui-avatars.com/api/?name=User&background=random`;
-      };
-    }
+    const namachat = document.getElementById('chat-name');
+    namachat.innerHTML = `
+      <div class="d-flex align-items-center">
+        <div class="position-relative">
+          <img src="${gambarprofile && gambarprofile !== 'null' ? gambarprofile : `https://ui-avatars.com/api/?name=${encodeURIComponent(usernamegrup || 'User')}&background=random`}" class="rounded-circle me-2" width="40" height="40" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=User&background=random';">
+        </div>
+        <div>
+          <h6 class="mb-0 fw-bold">${usernamegrup || 'Lawan Chat'}</h6>
+        </div>
+      </div>
+    `;
 
     (messages || []).forEach(p => {
       const isSent = p.sender_id === currentUserId;
-      const kelas = isSent ? 'message-wrapper sent mb-3' : 'message-wrapper received mb-3';
+      const kelas = isSent ? 'message sent' : 'message received';
       const username = p.users?.username || 'User';
       
       let bodyPesan = p.message_type === 'image' && p.image_url
@@ -47,7 +47,7 @@ export async function loadMessages(conversationId, token, currentUserId) {
       const pesanHtml = `
         <div class="${kelas}" data-id="${p.id}">
           <div class="message-bubble shadow-sm">
-            <div class="message-sender">${username}</div>
+            <small class="fw-bold d-block mb-1">${username}</small>
             <div class="message-text">${bodyPesan}</div>
             <div class="message-time">${new Date(p.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
           </div>
@@ -76,21 +76,18 @@ export async function loadMessagesGrup(grupId, token, currentUserId) {
     const isipesan = document.getElementById('messages');
     isipesan.innerHTML = '';
     
-    const partnerNameEl = document.getElementById('chat-partner-name');
-    if (partnerNameEl) partnerNameEl.textContent = `Group: ${usernamegrup || 'Grup'}`;
-    
-    const avatarEl = document.getElementById('chat-avatar');
-    if (avatarEl) {
-      avatarEl.src = gambarprofile && gambarprofile !== 'null' ? gambarprofile : `https://ui-avatars.com/api/?name=${encodeURIComponent(usernamegrup || 'Grup')}&background=random`;
-      avatarEl.onerror = function() {
-        this.onerror = null;
-        this.src = `https://ui-avatars.com/api/?name=Grup&background=random`;
-      };
-    }
+    const namachat = document.getElementById('chat-name');
+    namachat.innerHTML = `
+      <div class="d-flex align-items-center">
+        <div>
+          <h6 class="mb-0 fw-bold">Group: ${usernamegrup || 'Grup'}</h6>
+        </div>
+      </div>
+    `;
 
     (messages || []).forEach(p => {
       const isSent = p.sender_id === currentUserId;
-      const kelas = isSent ? 'message-wrapper sent mb-3' : 'message-wrapper received mb-3';
+      const kelas = isSent ? 'message sent' : 'message received';
       const username = p.users?.username || 'User';
       
       let bodyPesan = p.message_type === 'image' && p.image_url
@@ -100,7 +97,7 @@ export async function loadMessagesGrup(grupId, token, currentUserId) {
       const pesanHtml = `
         <div class="${kelas}" data-id="${p.id}">
           <div class="message-bubble shadow-sm">
-            <div class="message-sender">${username}</div>
+            <small class="fw-bold d-block mb-1">${username}</small>
             <div class="message-text">${bodyPesan}</div>
             <div class="message-time">${new Date(p.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
           </div>
@@ -116,59 +113,19 @@ export async function loadMessagesGrup(grupId, token, currentUserId) {
 }
 
 export function initChatHandlers(conversationId, grupId, token, currentUserId) {
-  const fileInput = document.getElementById('file-input');
-  const previewContainer = document.getElementById('image-preview-container');
-  const imagePreview = document.getElementById('image-preview');
-  const removeImageBtn = document.getElementById('remove-image-btn');
-  let selectedFile = null;
-
-  if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        selectedFile = file;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          imagePreview.src = ev.target.result;
-          previewContainer.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
-
-  if (removeImageBtn) {
-    removeImageBtn.addEventListener('click', () => {
-      selectedFile = null;
-      document.getElementById('file-input').value = '';
-      previewContainer.style.display = 'none';
-      imagePreview.src = '';
-    });
-  }
-
-  const chatForm = document.getElementById('chat-form');
-  if (chatForm) {
-    chatForm.addEventListener('submit', async (e) => {
+  document.getElementById('chat-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = document.getElementById('message-input');
     const content = input.value.trim();
-    if (!content && !selectedFile) return;
+    if (!content) return;
 
     try {
-      let imageUrl = null;
-      if (selectedFile) {
-        // resize image to max 800px
-        imageUrl = await resizeImage(selectedFile, 800);
-      }
-
       const payload = {
         sender_id: currentUserId,
         content: content,
-        message_type: imageUrl ? 'image' : 'text',
+        message_type: 'text',
         timestamp: new Date().toISOString()
       };
-      
-      if (imageUrl) payload.image_url = imageUrl;
 
       if (grupId) {
         payload.group_id = grupId;
@@ -180,19 +137,12 @@ export function initChatHandlers(conversationId, grupId, token, currentUserId) {
       
       if (error) throw error;
       
-      input.value = ''; // Kosongkan input
-      if (selectedFile) {
-        selectedFile = null;
-        document.getElementById('file-input').value = '';
-        document.getElementById('image-preview-container').style.display = 'none';
-        document.getElementById('image-preview').src = '';
-      }
+      input.value = ''; // Kosongkan input, pesan baru akan ditangkap oleh Realtime Subscription
     } catch (err) {
       console.error('Kirim gagal:', err);
       alert('Gagal mengirim pesan');
     }
   });
-  }
 }
 
 // Fungsi appendMessage saat ada pesan baru dari Realtime (socket)
@@ -201,7 +151,7 @@ export function appendMessage(message, currentUserId) {
   if (!chatBox) return;
 
   const isSent = message.sender_id === currentUserId;
-  const kelas = isSent ? 'message-wrapper sent mb-3' : 'message-wrapper received mb-3';
+  const kelas = isSent ? 'message sent' : 'message received';
   const username = message.senderName || 'User';
 
   let bodyHtml = message.message_type === 'image' && message.image_url
@@ -212,7 +162,7 @@ export function appendMessage(message, currentUserId) {
   div.className = kelas;
   div.innerHTML = `
     <div class="message-bubble shadow-sm">
-      <div class="message-sender">${username}</div>
+      <small class="fw-bold d-block mb-1">${username}</small>
       <div class="message-text">${bodyHtml}</div>
       <div class="message-time">${new Date(message.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
     </div>

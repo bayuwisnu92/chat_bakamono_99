@@ -1,6 +1,6 @@
 import { supaclient } from "./supabaseClient.js";
 import { updateProfile } from "./profile.js";
-import { showAlert, resizeImage } from "./utils.js";
+import { showAlert } from "./utils.js";
 
 import { loadAllChatList, startChat } from "./contacts.js";
 import { initSocket, requestNotificationPermission } from "./socket.js";
@@ -65,21 +65,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         showAlert('Pilih foto terlebih dahulu', 'danger');
         return;
       }
+      const formData = new FormData();
+      formData.append('profile_picture', file);
       try {
-        const base64Data = await resizeImage(file, 400);
-        const { error } = await supaclient.from('users').update({ profile_picture: base64Data }).eq('user_id', currentUserId);
-        if (error) throw error;
-        
-        showAlert('Foto profil berhasil diperbarui', 'success');
-        const myAvatarEl = document.getElementById('my-profile-avatar');
-        if (myAvatarEl) myAvatarEl.src = base64Data;
-        
-        // Hide modal
-        const modalEl = document.getElementById('ubahphoto');
-        if (modalEl) {
-          const modalInstance = bootstrap.Modal.getInstance(modalEl);
-          if (modalInstance) modalInstance.hide();
-        }
+        await updateProfile(formData);
         formPhoto.reset();
       } catch (err) {
         console.error('Update profile error:', err);
@@ -113,16 +102,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   currentUserId = session.user.id;
 
-  // Clear unread status for active chat
-  if (conversationId || grupId) {
-    const activeChatId = grupId ? `group_${grupId}` : `user_${new URLSearchParams(window.location.search).get('otherUserId') || 'unknown'}`;
-    // Wait, otherUserId is not in URL! conversationId doesn't easily map to user_id without fetching. 
-    // Actually in socket.js, we saved 'user_' + newMessage.sender_id. 
-    // If the active conversation is open, socket.js will NOT mark it as unread because isForActiveConversation is true!
-    // So we don't strictly need to clear it here unless they opened it while it was unread.
-    // We already added clearUnread() to the onclick in the sidebar! So clicking the sidebar clears it.
-  }
-
   // Minta izin notifikasi browser
   requestNotificationPermission();
 
@@ -149,25 +128,16 @@ document.addEventListener('DOMContentLoaded', async function () {
   const kontakEl = document.getElementById('kontak');
   const isMobile = window.innerWidth <= 768;
 
-  const welcomeScreen = document.getElementById('welcome-screen');
-  const activeChatArea = document.getElementById('active-chat-area');
-
   if (conversationId && conversationId !== 'null') {
     chatContainer.style.display = 'flex';
-    if (welcomeScreen) welcomeScreen.style.display = 'none';
-    if (activeChatArea) activeChatArea.style.setProperty('display', 'flex', 'important');
     if (isMobile && kontakEl) kontakEl.style.display = 'none';
     loadMessages(conversationId, session.access_token, currentUserId);
   } else if (grupId && grupId !== 'null') {
     chatContainer.style.display = 'flex';
-    if (welcomeScreen) welcomeScreen.style.display = 'none';
-    if (activeChatArea) activeChatArea.style.setProperty('display', 'flex', 'important');
     if (isMobile && kontakEl) kontakEl.style.display = 'none';
     loadMessagesGrup(grupId, session.access_token, currentUserId);
   } else {
-    chatContainer.style.display = isMobile ? 'none' : 'flex';
-    if (welcomeScreen) welcomeScreen.style.display = 'flex';
-    if (activeChatArea) activeChatArea.style.setProperty('display', 'none', 'important');
+    chatContainer.style.display = 'none';
   }
 
   // Load daftar kontak + pesan terakhir
@@ -190,16 +160,15 @@ async function loadProtectedContent(user) {
 
     document.title = `ChatApp — ${username}`;
 
-    const myUsernameEl = document.getElementById('my-username');
-    if (myUsernameEl) myUsernameEl.textContent = username;
-
-    const myAvatarEl = document.getElementById('my-profile-avatar');
-    if (myAvatarEl) {
-      myAvatarEl.src = photo;
-      myAvatarEl.onerror = function() {
-        this.onerror = null;
-        this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=4361ee&color=fff&bold=true`;
-      };
+    const homeElement = document.getElementById('home');
+    if (homeElement) {
+      homeElement.innerHTML = `
+        <img src="${photo}" alt="Profile"
+          class="rounded-circle me-2 border border-2 border-white"
+          style="width:32px;height:32px;object-fit:cover;"
+          onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=4361ee&color=fff'">
+        <span class="fw-semibold">${username}</span>
+      `;
     }
 
     // Tombol logout

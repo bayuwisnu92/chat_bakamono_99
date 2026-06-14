@@ -36,16 +36,10 @@ export function initSocket(token, currentUserId, handlers) {
             showBrowserNotification(newMessage.senderName, newMessage.content || '📷 Gambar');
           }
         } else {
-          // Pesan untuk chat lain → update sidebar + bunyikan notifikasi + mark unread
+          // Pesan untuk chat lain → update sidebar + bunyikan notifikasi
           if (!isFromSelf) {
             playNotificationSound();
             showBrowserNotification(newMessage.senderName, newMessage.content || '📷 Gambar');
-            
-            // Simpan status unread ke localStorage
-            const chatId = newMessage.group_id ? `group_${newMessage.group_id}` : `user_${newMessage.sender_id}`;
-            let unreadChats = JSON.parse(localStorage.getItem('unread_chats') || '{}');
-            unreadChats[chatId] = true;
-            localStorage.setItem('unread_chats', JSON.stringify(unreadChats));
           }
           if (handlers.onUpdateContact) {
             handlers.onUpdateContact(newMessage);

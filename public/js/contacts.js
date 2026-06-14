@@ -152,8 +152,6 @@ export function listContact(combinedList) {
     return;
   }
 
-  const unreadChats = JSON.parse(localStorage.getItem('unread_chats') || '{}');
-
   contactsList.innerHTML = combinedList.map(item => {
     const time = item.lastTime ? formatDate(item.lastTime) : '';
     const pic = item.profilePicture;
@@ -168,13 +166,9 @@ export function listContact(combinedList) {
     if (msgPreview.length > 40) msgPreview = msgPreview.substring(0, 40) + '…';
 
     if (item.type === 'user') {
-      const chatId = `user_${item.id}`;
-      const isUnread = unreadChats[chatId];
-      const nameClass = isUnread ? 'fw-bold text-dark' : '';
-      const msgClass = isUnread ? 'fw-bold text-dark' : '';
       const isOnline = item.status === 'online';
       return `
-        <div class="contact-card" data-user-id="${item.id}" style="cursor: pointer;" onclick="clearUnread('${chatId}'); startChat({otherUserId:'${item.id}',username:'${item.name}',image:'${item.profilePicture || ''}'})">
+        <div class="contact-card" data-user-id="${item.id}">
           <div class="contact-avatar-wrap position-relative me-3">
             <img src="${avatarUrl}" alt="${initials}" class="contact-avatar-img" 
                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=4361ee&color=fff'">
@@ -182,25 +176,23 @@ export function listContact(combinedList) {
           </div>
           <div class="contact-info flex-grow-1 min-w-0">
             <div class="d-flex justify-content-between align-items-baseline">
-              <span class="contact-name ${nameClass}">${item.name}</span>
+              <span class="contact-name">${item.name}</span>
               <span class="contact-time">${time}</span>
             </div>
-            <p class="contact-last-msg mb-0 text-truncate ${msgClass}">${msgPreview}</p>
+            <p class="contact-last-msg mb-0 text-truncate">${msgPreview}</p>
           </div>
-          <button class="btn btn-chat-icon ms-2" title="Mulai Chat">
+          <button class="btn btn-chat-icon ms-2" 
+            onclick="startChat({otherUserId:'${item.id}',username:'${item.name}',image:'${item.profilePicture || ''}'})"
+            title="Mulai Chat">
             <i class="fas fa-chevron-right"></i>
           </button>
         </div>`;
     }
 
     if (item.type === 'group') {
-      const chatId = `group_${item.id}`;
-      const isUnread = unreadChats[chatId];
-      const nameClass = isUnread ? 'fw-bold text-dark' : '';
-      const msgClass = isUnread ? 'fw-bold text-dark' : '';
       const senderPrefix = item.sender ? `<b>${item.sender}:</b> ` : '';
       return `
-        <div class="contact-card" data-group-id="${item.id}" style="cursor: pointer;" onclick="clearUnread('${chatId}'); sessionStorage.setItem('active_chat_username', '${item.name.replace(/'/g, "\\'")}'); sessionStorage.setItem('active_chat_image', '${pic || ''}'); window.location.href='contact.html?grupId=${item.id}'">
+        <div class="contact-card" data-group-id="${item.id}">
           <div class="contact-avatar-wrap position-relative me-3">
             <img src="${avatarUrl}" alt="${initials}" class="contact-avatar-img contact-avatar-group"
                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=7c3aed&color=fff'">
@@ -208,12 +200,14 @@ export function listContact(combinedList) {
           </div>
           <div class="contact-info flex-grow-1 min-w-0">
             <div class="d-flex justify-content-between align-items-baseline">
-              <span class="contact-name ${nameClass}">${item.name}</span>
+              <span class="contact-name">${item.name}</span>
               <span class="contact-time">${time}</span>
             </div>
-            <p class="contact-last-msg mb-0 text-truncate ${msgClass}">${senderPrefix}${msgPreview}</p>
+            <p class="contact-last-msg mb-0 text-truncate">${senderPrefix}${msgPreview}</p>
           </div>
-          <button class="btn btn-chat-icon ms-2" title="Buka Grup">
+          <button class="btn btn-chat-icon ms-2"
+            onclick="window.location.href='contact.html?grupId=${item.id}&username=${encodeURIComponent(item.name)}&image=${encodeURIComponent(pic || '')}'"
+            title="Buka Grup">
             <i class="fas fa-chevron-right"></i>
           </button>
         </div>`;
@@ -221,14 +215,6 @@ export function listContact(combinedList) {
     return '';
   }).join('');
 }
-
-window.clearUnread = function(chatId) {
-  let unreadChats = JSON.parse(localStorage.getItem('unread_chats') || '{}');
-  if (unreadChats[chatId]) {
-    delete unreadChats[chatId];
-    localStorage.setItem('unread_chats', JSON.stringify(unreadChats));
-  }
-};
 
 // ─── Start Private Chat ──────────────────────────────────────────────────────
 export async function startChat(datanya) {
@@ -259,9 +245,7 @@ export async function startChat(datanya) {
       conversationId = newConv.id;
     }
 
-    sessionStorage.setItem('active_chat_username', username || '');
-    sessionStorage.setItem('active_chat_image', image || '');
-    window.location.href = `contact.html?conversationId=${conversationId}`;
+    window.location.href = `contact.html?conversationId=${conversationId}&username=${encodeURIComponent(username)}&image=${encodeURIComponent(image || '')}`;
   } catch (error) {
     console.error('Error starting chat:', error);
     alert('Gagal memulai obrolan: ' + error.message);
