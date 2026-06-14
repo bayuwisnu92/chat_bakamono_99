@@ -104,6 +104,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
   }
 
+  // ─── Back Button ──────────────────────────────────────────────────────────────
+  const chatBackBtn = document.getElementById('chat-back-btn');
+  if (chatBackBtn) {
+    chatBackBtn.addEventListener('click', () => {
+      window.location.href = 'contact.html';
+    });
+  }
+
   // Auth Check
   const { data: { session }, error } = await supaclient.auth.getSession();
   if (error || !session) {
@@ -140,6 +148,20 @@ document.addEventListener('DOMContentLoaded', async function () {
       appendMessage(message, currentUserId);
     },
     onUpdateContact: () => {
+      loadAllChatList();
+    },
+    onUpdateMessage: (message) => {
+      // Kita perlu membuat fungsi ini nanti di chat.js, misal updateMessageUI
+      const event = new CustomEvent('messageUpdated', { detail: message });
+      document.dispatchEvent(event);
+    },
+    onDeleteMessage: (message) => {
+      const event = new CustomEvent('messageDeleted', { detail: message });
+      document.dispatchEvent(event);
+    },
+    onReconnect: () => {
+      if (conversationId && conversationId !== 'null') loadMessages(conversationId, session.access_token, currentUserId);
+      else if (grupId && grupId !== 'null') loadMessagesGrup(grupId, session.access_token, currentUserId);
       loadAllChatList();
     }
   });

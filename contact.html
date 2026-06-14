@@ -37,8 +37,11 @@
           </div>
         </button>
         <div class="sidebar-actions">
+          <button class="action-btn text-primary" data-bs-toggle="modal" data-bs-target="#newChatModal" title="Mulai Chat Baru">
+            <i class="fas fa-comment-dots fa-lg"></i>
+          </button>
           <button class="action-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Buat Grup Baru">
-            <i class="fas fa-plus-circle fa-lg"></i>
+            <i class="fas fa-users fa-lg"></i>
           </button>
           <button class="action-btn text-danger" id="logout" title="Keluar">
             <i class="fas fa-sign-out-alt fa-lg"></i>
@@ -237,6 +240,28 @@
         <div class="modal-body">
           <div id="allmembergrup" class="list-group list-group-flush max-height-300 overflow-y-auto">
             <!-- Diisi oleh JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CARI PENGGUNA (NEW CHAT) -->
+  <div class="modal fade" id="newChatModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-primary"><i class="fas fa-search me-2"></i>Cari Pengguna</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-3">
+          <div class="input-group mb-3">
+            <span class="input-group-text bg-white border-end-0"><i class="fas fa-user"></i></span>
+            <input type="text" class="form-control border-start-0 ps-0" id="searchNewUserInput" placeholder="Masukkan username target...">
+            <button class="btn btn-primary" type="button" id="searchNewUserBtn">Cari</button>
+          </div>
+          <div id="searchNewUserResult" class="list-group list-group-flush max-height-300 overflow-y-auto mt-2">
+            <!-- Hasil pencarian akan muncul di sini -->
           </div>
         </div>
       </div>

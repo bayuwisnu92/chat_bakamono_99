@@ -2,16 +2,19 @@ import { supaclient } from "./supabaseClient.js";
 import { playNotificationSound } from "./contacts.js";
 
 export function initSocket(token, currentUserId, handlers) {
+  let isInitialConnect = true;
+
   const channel = supaclient
     .channel('realtime:messages')
     .on(
       'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages' },
+      { event: '*', schema: 'public', table: 'messages' },
       async (payload) => {
-        const newMessage = payload.new;
+        if (payload.eventType === 'INSERT') {
+          const newMessage = payload.new;
 
-        const isForActiveConversation = handlers.conversationId
-          && newMessage.conversation_id === handlers.conversationId;
+          const isForActiveConversation = handlers.conversationId
+            && newMessage.conversation_id === handlers.conversationId;
         const isForActiveGroup = handlers.grupId
           && newMessage.group_id === handlers.grupId;
 
@@ -51,11 +54,22 @@ export function initSocket(token, currentUserId, handlers) {
             handlers.onUpdateContact(newMessage);
           }
         }
+      } else if (payload.eventType === 'UPDATE') {
+        if (handlers.onUpdateMessage) handlers.onUpdateMessage(payload.new);
+      } else if (payload.eventType === 'DELETE') {
+        if (handlers.onDeleteMessage) handlers.onDeleteMessage(payload.old);
       }
-    )
-    .subscribe((status) => {
-      console.log('Supabase Realtime:', status);
-    });
+    }
+  )
+  .subscribe((status) => {
+    console.log('Supabase Realtime:', status);
+    if (status === 'SUBSCRIBED') {
+      if (!isInitialConnect && handlers.onReconnect) {
+        handlers.onReconnect();
+      }
+      isInitialConnect = false;
+    }
+  });
 
   return channel;
 }

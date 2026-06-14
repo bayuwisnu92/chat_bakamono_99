@@ -51,22 +51,6 @@ export async function loadAllChatList() {
 
     const currentUserId = userData.user.id;
 
-    // Fetch all users as contacts
-    const { data: contacts, error: contactError } = await supaclient
-      .from('users')
-      .select('*')
-      .neq('user_id', currentUserId);
-
-    if (contactError) throw contactError;
-
-    // Fetch user's groups
-    const { data: groupMembers, error: groupError } = await supaclient
-      .from('group_members')
-      .select('group_id, groups(*)')
-      .eq('user_id', currentUserId);
-
-    if (groupError) throw groupError;
-
     // Fetch conversations to get conversation IDs for each user
     const { data: conversations } = await supaclient
       .from('conversations')
@@ -75,10 +59,31 @@ export async function loadAllChatList() {
 
     // Build a map: otherUserId -> conversationId
     const convMap = {};
+    const otherUserIds = [];
     (conversations || []).forEach(c => {
       const otherId = c.user1_id === currentUserId ? c.user2_id : c.user1_id;
       convMap[otherId] = c.id;
+      otherUserIds.push(otherId);
     });
+
+    // Fetch users ONLY if they are in otherUserIds
+    let contacts = [];
+    if (otherUserIds.length > 0) {
+      const { data: fetchContacts, error: contactError } = await supaclient
+        .from('users')
+        .select('*')
+        .in('user_id', otherUserIds);
+      if (contactError) throw contactError;
+      contacts = fetchContacts;
+    }
+
+    // Fetch user's groups
+    const { data: groupMembers, error: groupError } = await supaclient
+      .from('group_members')
+      .select('group_id, groups(*)')
+      .eq('user_id', currentUserId);
+
+    if (groupError) throw groupError;
 
     // Format Contacts with last message (run in parallel)
     const formattedContacts = await Promise.all((contacts || []).map(async c => {
@@ -267,6 +272,62 @@ export async function startChat(datanya) {
     alert('Gagal memulai obrolan: ' + error.message);
   }
 }
+
+// ─── Search New User ────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const searchBtn = document.getElementById('searchNewUserBtn');
+  const searchInput = document.getElementById('searchNewUserInput');
+  const searchResult = document.getElementById('searchNewUserResult');
+
+  if (searchBtn && searchInput && searchResult) {
+    searchBtn.addEventListener('click', async () => {
+      const q = searchInput.value.trim();
+      if (!q) return;
+
+      searchBtn.disabled = true;
+      searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+      try {
+        const { data: userData } = await supaclient.auth.getUser();
+        const currentUserId = userData.user.id;
+
+        const { data, error } = await supaclient
+          .from('users')
+          .select('*')
+          .ilike('username', `%${q}%`)
+          .neq('user_id', currentUserId)
+          .limit(10);
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          searchResult.innerHTML = `<div class="p-3 text-center text-muted">Pengguna tidak ditemukan</div>`;
+        } else {
+          searchResult.innerHTML = data.map(u => {
+            const initial = u.username ? u.username.substring(0, 2).toUpperCase() : 'U';
+            const avatar = u.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}&background=4361ee&color=fff`;
+            return `
+              <div class="list-group-item list-group-item-action d-flex align-items-center" style="cursor:pointer;" onclick="startChat({otherUserId:'${u.user_id}',username:'${u.username.replace(/'/g, "\\'")}',image:'${u.profile_picture || ''}'})">
+                <img src="${avatar}" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                <div class="fw-bold">${u.username}</div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Search error:', err);
+        searchResult.innerHTML = `<div class="p-3 text-center text-danger">Gagal mencari data</div>`;
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = 'Cari';
+      }
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') searchBtn.click();
+    });
+  }
+});
 
 export function mapSearchUsers(users) {
   return users.map(user => ({
